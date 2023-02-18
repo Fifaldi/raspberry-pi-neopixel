@@ -16,7 +16,7 @@ export abstract class BaseApi {
    * @param baseUrl
    * @protected
    */
-  protected static async get<T extends IBaseModel | IBaseModel[] = never>(
+  protected static async get<T>(
     url: string,
     config?: AxiosRequestConfig,
     baseUrl?: string
@@ -50,7 +50,7 @@ export abstract class BaseApi {
    * @protected
    */
 
-  protected static async post<T extends IBaseModel | IBaseModel[] = never>(
+  protected static async post<T>(
     url: string,
     data?: T,
     config?: AxiosRequestConfig,
@@ -167,7 +167,8 @@ export abstract class BaseApi {
     }
   }
   private static async createApi(baseUrl?: string) {
-    const ip = await Network.getIpAddressAsync();
+    // const ip = await Network.getIpAddressAsync();
+    const ip = "192.168.0.110:80";
     api.setBaseURL(baseUrl ?? ip);
     return api;
   }
