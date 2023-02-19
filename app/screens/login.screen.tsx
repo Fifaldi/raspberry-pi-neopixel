@@ -74,7 +74,7 @@ const LoginScreen = () => {
         />
         <Input
           type="password"
-          placeholder="Password"
+          placeholder="Hasło"
           placeholderTextColor={"#404040"}
           borderColor={"black"}
           borderWidth={1}
