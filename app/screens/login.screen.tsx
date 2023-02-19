@@ -58,7 +58,7 @@ const LoginScreen = () => {
       justifyContent="center"
       px={4}
     >
-      <Text fontSize={22}>Login to server</Text>
+      <Text fontSize={22}>Zaloguj się do serwera</Text>
       <VStack width={"100%"} space={2} my={4}>
         <Input
           autoCapitalize="none"
@@ -92,7 +92,7 @@ const LoginScreen = () => {
       >
         Submit
       </Button>
-      {loginError && <Text>{loginError}</Text>}
+      {loginError && <Text>Nieprawidłowy login lub hasło</Text>}
     </VStack>
   );
 };

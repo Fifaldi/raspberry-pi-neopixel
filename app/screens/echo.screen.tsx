@@ -8,22 +8,22 @@ const EchoScreen = () => {
   const navigation = useNavigation<RootStackNaviagtor>();
   const [isFetchedWithError, setIsFetchedWithError] = useState(false);
 
- const  fetchEcho = async () => {
-  let isAuthenticated = false;
-      const token = await AsyncStorage.getItem('token');
-      if(token) {isAuthenticated = true}
+  const fetchEcho = async () => {
+    let isAuthenticated = false;
+    const token = await AsyncStorage.getItem("token");
+    if (token) {
+      isAuthenticated = true;
+    }
     try {
-      await fetch('http://192.168.0.110:80/echo');
-      navigation.navigate(isAuthenticated ? 'home' : "login");
-    } catch(e) {
+      await fetch("http://192.168.0.110:80/echo");
+      navigation.navigate(isAuthenticated ? "home" : "login");
+    } catch (e) {
       setIsFetchedWithError(true);
     }
   };
-useEffect(() => {
-  fetchEcho()
-},[])
-
-
+  useEffect(() => {
+    fetchEcho();
+  }, []);
 
   return (
     <VStack
@@ -36,10 +36,12 @@ useEffect(() => {
       {!isFetchedWithError ? (
         <VStack>
           <Spinner size={"lg"} color="#000" />
-          <Text fontSize={"lg"}>Connecting to server</Text>
+          <Text fontSize={"lg"}>Łączenie z serwerem</Text>
         </VStack>
       ) : (
-        <Text fontSize={"lg"}>Cannot connect to server</Text>
+        <Text fontSize={"lg"}>
+          Nie można się połączyć z sewerem. Spróbuj ponownie później
+        </Text>
       )}
     </VStack>
   );
