@@ -123,7 +123,7 @@ const ManagerScreen: React.FC<ManagerScreenProps> = ({ route, navigation }) => {
     <LinearGradient colors={["#EEB68C", "#E27D4E"]} style={{ flex: 1 }}>
       <VStack safeArea space={10} flex={1}>
         <ScreenHeader
-          screenName={item.name}
+          screenName={"Urządzenie: " + item.name}
           onGoBack={() => {
             animation(0).start(navigation.goBack);
           }}
