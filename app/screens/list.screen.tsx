@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Box, Button, HStack, Pressable, Text, VStack } from "native-base";
 import { ScreenHeader, CustomIcon } from "@components/shared";
 import { RootParamList } from "@router/index";
@@ -8,7 +8,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Animated } from "react-native";
 import { useEffect } from "react";
 import { widthPercentageToDP } from "react-native-responsive-screen";
-import { IComponentData, IHomeData } from "@shared/interfaces";
+import { IDevice, IHomeData } from "@shared/interfaces";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { FlatList } from "react-native-gesture-handler";
 
 type ListScreenProps = StackScreenProps<RootParamList, "list">;
 
@@ -38,13 +40,50 @@ const ListScreen: React.FC<ListScreenProps> = ({ route, navigation }) => {
     item,
     type,
   }: {
-    item: IComponentData;
+    item: IDevice;
     type: IHomeData;
   }) =>
     navigation.navigate("manager", {
       item,
       type,
     });
+
+  const [devices, setDevices] = useState<IDevice[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const token = await AsyncStorage.getItem("token");
+      const response = await fetch("http://192.168.0.110:80/devices", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await response.json();
+      if (result.devices) {
+        setDevices(
+          result.devices.filter((device: IDevice) => device.type === type.type)
+        );
+      }
+    })();
+  }, []);
+
+  const renderItem = ({ item }: { item: IDevice }) => {
+    return (
+      <Pressable
+        my={2}
+        shadow={5}
+        _pressed={{ opacity: 0.5 }}
+        onPress={() =>
+          handleItemPress({
+            item,
+            type,
+          })
+        }
+      >
+        <Text fontSize={24} fontWeight={"bold"}>
+          {item.name}
+        </Text>
+      </Pressable>
+    );
+  };
 
   return (
     <LinearGradient colors={["#EEB68C", "#E27D4E"]} style={{ flex: 1 }}>
@@ -73,32 +112,51 @@ const ListScreen: React.FC<ListScreenProps> = ({ route, navigation }) => {
               space={4}
               w={widthPercentageToDP(100)}
             >
-              <Pressable
-                shadow={5}
-                _pressed={{ opacity: 0.5 }}
-                onPress={() =>
-                  handleItemPress({
-                    item: { id: "1", name: "WS2812 NeoPixel" },
-                    type,
-                  })
+              <FlatList
+                ListFooterComponent={
+                  <Pressable
+                    my={2}
+                    _pressed={{ opacity: 0.5 }}
+                    onPress={() =>
+                      handleItemPress({
+                        type,
+                        item: {
+                          name: "Wszystkie komponenty oświetlenia",
+                          id: "",
+                          type: type.type,
+                          endpoint: "all",
+                          device: {
+                            last_stored_rgb_value: {
+                              red: 255,
+                              green: 255,
+                              blue: 255,
+                            },
+                            status: 0,
+                          },
+                        },
+                      })
+                    }
+                  >
+                    <HStack
+                      p={2}
+                      alignItems="center"
+                      justifyContent={"center"}
+                      borderWidth={1}
+                      rounded={"sm"}
+                    >
+                      <Text>Steruj wszystkimi urządzeniami naraz</Text>
+                    </HStack>
+                  </Pressable>
                 }
-              >
-                <Text fontSize={24} fontWeight={"bold"}>
-                  WS2812 NeoPixel
-                </Text>
-              </Pressable>
-              <Pressable _pressed={{ opacity: 0.5 }}>
-                <HStack
-                  p={2}
-                  space={2}
-                  alignItems="center"
-                  borderWidth={1}
-                  rounded={"sm"}
-                >
-                  <CustomIcon name={"add-new"} fontSize={40} />
-                  <Text>Dodaj nowe urządzenie</Text>
-                </HStack>
-              </Pressable>
+                ListHeaderComponent={
+                  <Text fontWeight={"bold"} fontSize={16}>
+                    Lista dostępnych urządzeń
+                  </Text>
+                }
+                data={devices}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.id}
+              />
             </VStack>
           </Animated.View>
         </VStack>

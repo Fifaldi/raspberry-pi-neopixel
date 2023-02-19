@@ -30,8 +30,8 @@ const Brightness: React.FC<IBrightnessProps> = ({
         value={lightValue}
         onChange={setLightValue}
         minValue={0}
-        maxValue={100}
-        step={0.1}
+        maxValue={1}
+        step={0.01}
       >
         <Slider.Track>
           <Slider.FilledTrack />

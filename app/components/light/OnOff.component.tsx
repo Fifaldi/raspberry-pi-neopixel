@@ -10,7 +10,12 @@ const OnOffLight: React.FC<IOnOffLightProps> = ({ lightOn, setLightOn }) => {
   return (
     <VStack alignItems={"center"} space={2}>
       <Text>{lightOn ? "Wyłącz światło" : "Włącz światło"} </Text>
-      <Switch colorScheme={"black"} value={lightOn} onChange={setLightOn} />
+      <Switch
+        isChecked={lightOn}
+        colorScheme={"black"}
+        value={lightOn}
+        onChange={setLightOn}
+      />
     </VStack>
   );
 };

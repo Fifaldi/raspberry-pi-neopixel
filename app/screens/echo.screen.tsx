@@ -2,26 +2,28 @@ import React, { useEffect, useState } from "react";
 import { Spinner, Text, VStack } from "native-base";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackNaviagtor } from "@router/index";
-import { AuthService } from "@shared/services/auth.service";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const EchoScreen = () => {
   const navigation = useNavigation<RootStackNaviagtor>();
   const [isFetchedWithError, setIsFetchedWithError] = useState(false);
-  useEffect(() => {
-    const fetch = async () => {
-      try {
-        const response = await AuthService.echo();
-        if (response?.status === "ok") {
-          navigation.navigate("home");
-        }
-        console.log("====> response", response);
-      } catch (e) {
-        console.log("====>, e", e);
-        setIsFetchedWithError(true);
-      }
-    };
-    fetch();
-  }, []);
+
+ const  fetchEcho = async () => {
+  let isAuthenticated = false;
+      const token = await AsyncStorage.getItem('token');
+      if(token) {isAuthenticated = true}
+    try {
+      await fetch('http://192.168.0.110:80/echo');
+      navigation.navigate(isAuthenticated ? 'home' : "login");
+    } catch(e) {
+      setIsFetchedWithError(true);
+    }
+  };
+useEffect(() => {
+  fetchEcho()
+},[])
+
+
 
   return (
     <VStack

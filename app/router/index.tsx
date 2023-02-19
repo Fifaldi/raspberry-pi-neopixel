@@ -1,27 +1,41 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import {
   EchoScreen,
   HomeScreen,
   ListScreen,
+  LoginScreen,
   ManagerScreen,
 } from "@screens/index";
 import { createSharedElementStackNavigator } from "react-navigation-shared-element";
 import { Easing } from "react-native";
-import { IComponentData, IHomeData } from "@shared/interfaces";
+import {  IDevice, IHomeData } from "@shared/interfaces";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type RootParamList = {
   echo: undefined;
+  login: undefined;
   home: undefined;
   list: { type: IHomeData };
-  manager: { item: IComponentData; type: IHomeData };
+  manager: { item: IDevice; type: IHomeData };
 };
 export type RootStackNaviagtor = StackNavigationProp<RootParamList>;
 
 const Stack = createSharedElementStackNavigator<RootParamList>();
 
+
+
 const Router = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+useEffect(() => {
+  (async () => {
+    const token = await AsyncStorage.getItem('token');
+    if(token) {setIsAuthenticated(true)}
+  })()
+},[])
+
   return (
     <NavigationContainer
       theme={{
@@ -36,6 +50,7 @@ const Router = () => {
         initialRouteName="echo"
       >
         <Stack.Screen name="echo" component={EchoScreen} />
+        {!isAuthenticated && <Stack.Screen name="login" component={LoginScreen}/>}
         <Stack.Screen name="home" component={HomeScreen} />
 
         <Stack.Screen

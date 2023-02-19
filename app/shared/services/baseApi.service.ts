@@ -168,7 +168,8 @@ export abstract class BaseApi {
   }
   private static async createApi(baseUrl?: string) {
     // const ip = await Network.getIpAddressAsync();
-    const ip = "192.168.0.110:80";
+    // const ip = "192.168.0.110:80";
+    const ip = 'localhost:19000'
     api.setBaseURL(baseUrl ?? ip);
     return api;
   }

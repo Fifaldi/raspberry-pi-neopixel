@@ -5,13 +5,11 @@ import { SharedElement } from "react-navigation-shared-element";
 
 interface IScreenHeaderProps {
   screenName: string;
-  rightElement?: JSX.Element;
   onGoBack(): void;
 }
 
 const ScreenHeader: React.FC<IScreenHeaderProps> = ({
   screenName,
-  rightElement,
   onGoBack,
 }) => {
   return (
@@ -31,11 +29,16 @@ const ScreenHeader: React.FC<IScreenHeaderProps> = ({
         <CustomIcon name="arrow-left" fontSize={"2xl"} />
       </Pressable>
       <SharedElement id={screenName}>
-        <Text textAlign={"center"} fontSize={"2xl"} fontWeight="bold">
+        <Text
+          textAlign={"center"}
+          flexGrow={1}
+          fontSize={"2xl"}
+          fontWeight="bold"
+        >
           {screenName}
         </Text>
       </SharedElement>
-      <Box flex={1}>{rightElement}</Box>
+      <Box flex={1} />
     </HStack>
   );
 };

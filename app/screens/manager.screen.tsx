@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { VStack } from "native-base";
+import { Spinner, Text, VStack } from "native-base";
 import { Brightness, LightColor, OnOffLight } from "@components/light";
 import { ScreenHeader, CustomIcon } from "@components/shared";
 import { RootParamList } from "@router/index";
@@ -8,26 +8,90 @@ import { SharedElement } from "react-navigation-shared-element";
 import { LinearGradient } from "expo-linear-gradient";
 import { Animated } from "react-native";
 import { useEffect } from "react";
-import { NetworkInfo } from "react-native-network-info";
-import { LightService } from "@shared/services";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import hexRgb from "hex-rgb";
+import rgbHex from "rgb-hex";
+import { IDevice, IDeviceData, IRgb } from "@shared/interfaces";
+import throttle from "lodash.throttle";
 
 type ManagerScreenProps = StackScreenProps<RootParamList, "manager">;
 
 const ManagerScreen: React.FC<ManagerScreenProps> = ({ route, navigation }) => {
-  const [lightOn, setLightOn] = useState(false);
-  const [lightValue, setLightValue] = useState(50);
-  const [color, setColor] = useState<string>("#FFF01F");
-
+  const [fetched, setFetched] = useState(false);
+  const [device, setDevice] = useState<IDeviceData>();
   const { item, type } = route.params;
-
+  const [lightOn, setLightOn] = useState<boolean>(false);
+  const [lightValue, setLightValue] = useState(0.5);
+  const [color, setColor] = useState<string>("");
   const mountedAnimated = useRef(new Animated.Value(0)).current;
-  // useEffect(() => {
-  //   LightService.toggleLight(lightOn ? "lighton" : "lightoff");
-  // }, [lightOn]);
+  const [token, setToken] = useState("");
 
   useEffect(() => {
-    LightService.setColor({ red: 100, green: 100, blue: 100 });
+    (async () => {
+      const token = await AsyncStorage.getItem("token");
+      token && setToken(token);
+      const response = await fetch(
+        `http://192.168.0.110:80/devices/${item.endpoint}`,
+        { method: "GET", headers: { Authorization: `Bearer ${token}` } }
+      );
+      const result = await response.json();
+      const { red, green, blue } = result.device.last_stored_rgb_value;
+      console.log(red, green, blue);
+      setDevice(result.device);
+      setColor(rgbHex(red, green, blue));
+      setLightOn(!!result.device.status);
+      setFetched(true);
+    })();
+  }, []);
+
+  const handleSetColor = async (color: IRgb) => {
+    await fetch(`http://192.168.0.110:80/${item.endpoint}/color`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(color),
+    });
+  };
+
+  const throttledSetColor = throttle(handleSetColor, 500);
+
+  useEffect(() => {
+    (async () => {
+      if (fetched) {
+        fetch(
+          `http://192.168.0.110:80/${item.endpoint}/${
+            lightOn ? "lighton" : "lightoff"
+          }`,
+          { method: "POST", headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+    })();
   }, [lightOn]);
+
+  useEffect(() => {
+    (async () => {
+      if (lightOn && fetched) {
+        const rgb = hexRgb(color);
+        throttledSetColor(rgb);
+      }
+    })();
+  }, [color]);
+  useEffect(() => {
+    (async () => {
+      if (lightOn && fetched) {
+        const val = hexRgb(color ?? "");
+        const rgb = {
+          ...val,
+          red: val.red * lightValue,
+          green: val.green * lightValue,
+          blue: val.blue * lightValue,
+        };
+        throttledSetColor(rgb);
+      }
+    })();
+  }, [lightValue]);
 
   const animation = (toValue: number, delay?: number) =>
     Animated.timing(mountedAnimated, {
@@ -46,6 +110,15 @@ const ManagerScreen: React.FC<ManagerScreenProps> = ({ route, navigation }) => {
     outputRange: [50, 1],
   });
 
+  if (!fetched)
+    return (
+      <LinearGradient
+        colors={["#EEB68C", "#E27D4E"]}
+        style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+      >
+        <Spinner color="#000" size="lg" />
+      </LinearGradient>
+    );
   return (
     <LinearGradient colors={["#EEB68C", "#E27D4E"]} style={{ flex: 1 }}>
       <VStack safeArea space={10} flex={1}>
@@ -58,7 +131,7 @@ const ManagerScreen: React.FC<ManagerScreenProps> = ({ route, navigation }) => {
         <VStack space={4} alignItems={"center"} w={"100%"}>
           <SharedElement id={type.id}>
             <CustomIcon
-              opacity={lightValue / 100 + 0.1}
+              opacity={lightValue + 0.1}
               name={type.icon}
               fontSize={150}
               color={lightOn ? color : "black.600"}
@@ -83,6 +156,7 @@ const ManagerScreen: React.FC<ManagerScreenProps> = ({ route, navigation }) => {
               <LightColor
                 lightOn={lightOn}
                 setColor={(val: string) => setColor(val)}
+                color={color}
               />
             </VStack>
           </Animated.View>

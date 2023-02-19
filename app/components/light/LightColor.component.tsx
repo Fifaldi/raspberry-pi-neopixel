@@ -13,9 +13,14 @@ import {
 interface ILightColorProps {
   lightOn: boolean;
   setColor(val: string): void;
+  color: string;
 }
 
-const LightColor: React.FC<ILightColorProps> = ({ lightOn, setColor }) => {
+const LightColor: React.FC<ILightColorProps> = ({
+  lightOn,
+  setColor,
+  color,
+}) => {
   return (
     <VStack
       opacity={lightOn ? 1 : 0.5}
@@ -32,6 +37,7 @@ const LightColor: React.FC<ILightColorProps> = ({ lightOn, setColor }) => {
         <TriangleColorPicker
           hideControls
           hideSliders
+          color={color}
           onColorChange={
             lightOn ? (color) => setColor(fromHsv(color)) : undefined
           }
