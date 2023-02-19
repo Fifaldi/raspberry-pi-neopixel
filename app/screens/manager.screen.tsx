@@ -73,14 +73,6 @@ const ManagerScreen: React.FC<ManagerScreenProps> = ({ route, navigation }) => {
   useEffect(() => {
     (async () => {
       if (lightOn && fetched) {
-        const rgb = hexRgb(color);
-        throttledSetColor(rgb);
-      }
-    })();
-  }, [color]);
-  useEffect(() => {
-    (async () => {
-      if (lightOn && fetched) {
         const val = hexRgb(color ?? "");
         const rgb = {
           ...val,
@@ -91,7 +83,7 @@ const ManagerScreen: React.FC<ManagerScreenProps> = ({ route, navigation }) => {
         throttledSetColor(rgb);
       }
     })();
-  }, [lightValue]);
+  }, [lightValue, color]);
 
   const animation = (toValue: number, delay?: number) =>
     Animated.timing(mountedAnimated, {
